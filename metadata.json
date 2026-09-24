@@ -1,0 +1,8 @@
+{
+  "name": "Temper-IT | متجر ونظام مراقبة الحرارة الذكي",
+  "description": "المتجر الرسمي لجهاز وحساس Temper-IT الذكي لمراقبة درجات حرارة الثلاجات والمعامل مع لوحة تحكم حية وربط مباشر للشراء عبر واتساب بيزنس بسعر 1300 ج.م.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

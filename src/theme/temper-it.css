@@ -1,0 +1,65 @@
+/**
+ * Temper-IT Official CSS Stylesheet
+ * Matching https://engrazanhazem-create.github.io/TemperIt/
+ */
+
+:root {
+  --temper-brand-50: #f0f9ff;
+  --temper-brand-100: #e0f2fe;
+  --temper-brand-500: #0284c7;
+  --temper-brand-600: #0369a1;
+  --temper-brand-700: #035485;
+  --temper-brand-900: #0c4a6e;
+  --temper-danger: #ef4444;
+  --temper-warning: #f59e0b;
+  --temper-success: #10b981;
+  --temper-monitor-bg: #0f172a;
+}
+
+body {
+  font-family: 'Cairo', sans-serif;
+  background-color: #f8fafc;
+  color: #1e293b;
+  direction: rtl;
+}
+
+/* Glassmorphism Header and Navigation */
+.glassmorphism {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Pulse Red Emergency State for Temperature Anomalies */
+@keyframes pulse-red-anim {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 16px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.pulse-red {
+  animation: pulse-red-anim 1.5s infinite;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

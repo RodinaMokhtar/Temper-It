@@ -1,0 +1,181 @@
+{
+  "entities": {
+    "Order": {
+      "title": "Order",
+      "description": "Customer order for Temper-IT devices and kits",
+      "type": "object",
+      "properties": {
+        "orderNumber": {
+          "type": "string",
+          "description": "Unique human-readable order number (e.g. TIT-2026-1024)",
+          "maxLength": 64
+        },
+        "customerName": {
+          "type": "string",
+          "description": "Customer full name",
+          "maxLength": 128
+        },
+        "customerPhone": {
+          "type": "string",
+          "description": "Customer contact phone or WhatsApp number",
+          "maxLength": 32
+        },
+        "businessName": {
+          "type": "string",
+          "description": "Facility, laboratory, pharmacy, or company name",
+          "maxLength": 128
+        },
+        "sector": {
+          "type": "string",
+          "description": "Industry or facility sector",
+          "maxLength": 64
+        },
+        "productId": {
+          "type": "string",
+          "description": "ID of the ordered product package",
+          "maxLength": 64
+        },
+        "productName": {
+          "type": "string",
+          "description": "Name of the ordered product package",
+          "maxLength": 128
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Number of devices ordered"
+        },
+        "unitPrice": {
+          "type": "number",
+          "description": "Unit price in Egyptian Pounds (EGP)"
+        },
+        "totalPrice": {
+          "type": "number",
+          "description": "Total price in Egyptian Pounds (EGP)"
+        },
+        "governorate": {
+          "type": "string",
+          "description": "Governorate in Egypt",
+          "maxLength": 64
+        },
+        "address": {
+          "type": "string",
+          "description": "Detailed street address",
+          "maxLength": 256
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "Selected payment method",
+          "maxLength": 64
+        },
+        "status": {
+          "type": "string",
+          "description": "Current order lifecycle status",
+          "enum": [
+            "معلق (بانتظار واتساب)",
+            "تم التواصل والتأكيد",
+            "تم تأكيد الطلب",
+            "جاري التجهيز والشحن",
+            "تم التسليم بنجاح",
+            "ملغي"
+          ],
+          "maxLength": 64
+        },
+        "notes": {
+          "type": "string",
+          "description": "Special customer notes or temperature range presets",
+          "maxLength": 512
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Formatted timestamp of order creation",
+          "maxLength": 64
+        },
+        "transactionId": {
+          "type": "string",
+          "description": "Online payment gateway reference ID (e.g. Paymob or InstaPay reference)",
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "orderNumber",
+        "customerName",
+        "customerPhone",
+        "productId",
+        "quantity",
+        "totalPrice",
+        "paymentMethod",
+        "status"
+      ]
+    },
+    "Setting": {
+      "title": "Setting",
+      "description": "Global application configuration and live store settings",
+      "type": "object",
+      "properties": {
+        "basePrice": {
+          "type": "number",
+          "description": "Current base unit price in EGP (default 1300)"
+        },
+        "officialPhone": {
+          "type": "string",
+          "description": "Official WhatsApp business phone number",
+          "maxLength": 32
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of the last configuration update",
+          "maxLength": 64
+        },
+        "updatedBy": {
+          "type": "string",
+          "description": "UID or email of the admin who updated settings",
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "basePrice"
+      ]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Authorized administrator profile for store management",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "Admin email address",
+          "maxLength": 128
+        },
+        "role": {
+          "type": "string",
+          "description": "Admin role",
+          "enum": ["admin", "superadmin"],
+          "maxLength": 32
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Registration timestamp",
+          "maxLength": 64
+        }
+      },
+      "required": [
+        "email",
+        "role"
+      ]
+    }
+  },
+  "firestore": {
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer purchase orders and inquiries"
+    },
+    "/settings/{settingId}": {
+      "schema": "Setting",
+      "description": "Store configuration such as base price"
+    },
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "Registered administrators with access to the store dashboard"
+    }
+  }
+}

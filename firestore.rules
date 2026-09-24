@@ -1,0 +1,149 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net: Default-deny all unmapped operations
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common Primitives
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'rodina.ibrahim2022@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Validation helper for orders
+    function isValidOrder(data) {
+      return data.keys().hasAll([
+        'orderNumber',
+        'customerName',
+        'customerPhone',
+        'productId',
+        'quantity',
+        'totalPrice',
+        'paymentMethod',
+        'status'
+      ]) &&
+      data.keys().hasOnly([
+        'orderNumber',
+        'customerName',
+        'customerPhone',
+        'businessName',
+        'sector',
+        'productId',
+        'productName',
+        'quantity',
+        'unitPrice',
+        'totalPrice',
+        'governorate',
+        'address',
+        'paymentMethod',
+        'status',
+        'notes',
+        'createdAt',
+        'transactionId'
+      ]) &&
+      data.orderNumber is string && data.orderNumber.size() > 0 && data.orderNumber.size() <= 64 &&
+      data.customerName is string && data.customerName.size() > 0 && data.customerName.size() <= 128 &&
+      data.customerPhone is string && data.customerPhone.size() > 0 && data.customerPhone.size() <= 32 &&
+      data.productId is string && data.productId.size() > 0 && data.productId.size() <= 64 &&
+      data.quantity is number && data.quantity >= 1 && data.quantity <= 100 &&
+      data.totalPrice is number && data.totalPrice >= 0 && data.totalPrice <= 1000000 &&
+      data.paymentMethod is string && data.paymentMethod.size() > 0 && data.paymentMethod.size() <= 64 &&
+      data.status is string && data.status in [
+        'معلق (بانتظار واتساب)',
+        'تم التواصل والتأكيد',
+        'تم تأكيد الطلب',
+        'جاري التجهيز والشحن',
+        'تم التسليم بنجاح',
+        'ملغي'
+      ] &&
+      (!('businessName' in data) || (data.businessName is string && data.businessName.size() <= 128)) &&
+      (!('sector' in data) || (data.sector is string && data.sector.size() <= 64)) &&
+      (!('productName' in data) || (data.productName is string && data.productName.size() <= 128)) &&
+      (!('unitPrice' in data) || (data.unitPrice is number && data.unitPrice >= 0 && data.unitPrice <= 1000000)) &&
+      (!('governorate' in data) || (data.governorate is string && data.governorate.size() <= 64)) &&
+      (!('address' in data) || (data.address is string && data.address.size() <= 256)) &&
+      (!('notes' in data) || (data.notes is string && data.notes.size() <= 512)) &&
+      (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 64)) &&
+      (!('transactionId' in data) || (data.transactionId is string && data.transactionId.size() <= 128));
+    }
+
+    // Validation helper for store settings
+    function isValidSetting(data) {
+      return data.keys().hasAll(['basePrice']) &&
+      data.keys().hasOnly(['basePrice', 'officialPhone', 'updatedAt', 'updatedBy']) &&
+      data.basePrice is number && data.basePrice >= 500 && data.basePrice <= 100000 &&
+      (!('officialPhone' in data) || (data.officialPhone is string && data.officialPhone.size() <= 32)) &&
+      (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 64)) &&
+      (!('updatedBy' in data) || (data.updatedBy is string && data.updatedBy.size() <= 128));
+    }
+
+    // Validation helper for admin profiles
+    function isValidAdmin(data) {
+      return data.keys().hasAll(['email', 'role']) &&
+      data.keys().hasOnly(['email', 'role', 'createdAt']) &&
+      data.email is string && data.email.size() <= 128 &&
+      data.role in ['admin', 'superadmin'] &&
+      (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 64));
+    }
+
+    // Orders Collection
+    match /orders/{orderId} {
+      // Anyone can submit a purchase order / inquiry
+      allow create: if isValidId(orderId) &&
+                       isValidOrder(incoming()) &&
+                       incoming().status == 'معلق (بانتظار واتساب)';
+
+      // Only administrators can list all orders or inspect detailed customer orders
+      allow get: if isValidId(orderId) && isAdmin();
+      allow list: if isAdmin();
+
+      // Only administrators can update order status or modify order records
+      allow update: if isValidId(orderId) &&
+                       isAdmin() &&
+                       isValidOrder(incoming()) &&
+                       incoming().orderNumber == existing().orderNumber;
+
+      // Only administrators can delete orders
+      allow delete: if isValidId(orderId) && isAdmin();
+    }
+
+    // Store Settings Collection (e.g. pricing)
+    match /settings/{settingId} {
+      // Anyone can read store settings like product base price
+      allow get: if isValidId(settingId);
+      allow list: if true;
+
+      // Only administrators can change prices or store configurations
+      allow create: if isValidId(settingId) && isAdmin() && isValidSetting(incoming());
+      allow update: if isValidId(settingId) && isAdmin() && isValidSetting(incoming());
+      allow delete: if isValidId(settingId) && isAdmin();
+    }
+
+    // Admin Profiles Collection
+    match /admins/{adminId} {
+      allow get: if isValidId(adminId) && isSignedIn() && (request.auth.uid == adminId || isAdmin());
+      allow list: if isAdmin();
+      allow write: if isValidId(adminId) && isAdmin() && isValidAdmin(incoming());
+    }
+  }
+}
